@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Eratosthenes</string>
+    <string name="search_hint">Выполняется поиск</string>
+    <string name="sum">Сумма:</string>
+    <string name="sum_hint">Сумма простых чисел</string>
+    <string name="prime_title">Простые числа:</string>
+    <string name="found_prime_hint">Найденные простые числа</string>
+    <string name="enter_number_hint">Введите число</string>
+    <string name="search">Поиск</string>
+</resources>
