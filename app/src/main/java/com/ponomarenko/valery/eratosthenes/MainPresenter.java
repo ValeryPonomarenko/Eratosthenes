@@ -24,11 +24,13 @@ import io.reactivex.schedulers.Schedulers;
 @InjectViewState
 public class MainPresenter extends MvpPresenter<IMainView> {
 
+    private static final int MAX_TEXT_LENGTH = 200000;
+
     private Disposable subscription;
     private StringBuilder sbPrimes;
     private Long sumPrimes;
 
-    public void calculatePrimesUntil(int number) {
+    public void calculatePrimesUntil(long number) {
         getViewState().clear();
         getViewState().showLoading(true);
 
@@ -40,7 +42,10 @@ public class MainPresenter extends MvpPresenter<IMainView> {
         subscription = createObservable(number)
                 .subscribeOn(Schedulers.computation())
                 .doOnNext(integer -> {
-                    sbPrimes.append(String.format(Locale.getDefault(), "%d ", integer));
+                    //ограничение на вывод строки (если убрать, то приложение зависает на выводе списка цифр)
+                    if(sbPrimes.length() < MAX_TEXT_LENGTH) {
+                        sbPrimes.append(String.format(Locale.getDefault(), "%d ", integer));
+                    }
                     sumPrimes += integer;
                 })
                 .sample(2, TimeUnit.SECONDS)
@@ -65,14 +70,11 @@ public class MainPresenter extends MvpPresenter<IMainView> {
     }
 
     private void updateUI(String sum, String primes) {
-        //ограничение на вывод строки (если убрать, то приложение зависает на выводе списка цифр)
-        if (primes.length() < 500000) {
-            getViewState().showPrimes(primes);
-        }
+        getViewState().showPrimes(primes);
         getViewState().showSum(sum);
     }
 
-    private Observable<Integer> createObservable(int maxNumber) {
+    private Observable<Long> createObservable(long maxNumber) {
         return Observable
                 .create(emitter -> {
                     try {
@@ -84,12 +86,12 @@ public class MainPresenter extends MvpPresenter<IMainView> {
                 });
     }
 
-    private void segmented(int maxNumber, ObservableEmitter<Integer> emitter){
+    private void segmented(long maxNumber, ObservableEmitter<Long> emitter){
         int limit = Math.round((float)Math.sqrt(maxNumber));
         Integer[] primes = simple(limit, emitter);
 
-        int low = limit;
-        int high = 2 * limit;
+        long low = limit;
+        long high = 2 * limit;
 
         while (low < maxNumber) {
             int[] primesInSegment = new int[limit];
@@ -102,12 +104,12 @@ public class MainPresenter extends MvpPresenter<IMainView> {
                 }
 
                 for (int j = lim; j < high; j += prime) {
-                    primesInSegment[j - low] = 0;
+                    primesInSegment[(int)(j - low)] = 0;
                 }
             }
 
-            for(int i = low; i < high; i++) {
-                if(primesInSegment[i - low] == 1) {
+            for(long i = low; i < high; i++) {
+                if(primesInSegment[(int)(i - low)] == 1) {
                     emitter.onNext(i);
                 }
             }
@@ -118,7 +120,7 @@ public class MainPresenter extends MvpPresenter<IMainView> {
         }
     }
 
-    private Integer[] simple(int maxNumber, ObservableEmitter<Integer> emitter) {
+    private Integer[] simple(int maxNumber, ObservableEmitter<Long> emitter) {
         int[] s = new int[maxNumber];
         List<Integer> primes = new ArrayList<>();
         Arrays.fill(s, 1);
@@ -128,7 +130,7 @@ public class MainPresenter extends MvpPresenter<IMainView> {
 
         while (index * index < maxNumber) {
             if (s[index] == 1) {
-                emitter.onNext(index);
+                emitter.onNext((long)index);
                 primes.add(index);
 
                 for (int j = index * index; j < maxNumber; j += index) {
@@ -140,7 +142,7 @@ public class MainPresenter extends MvpPresenter<IMainView> {
 
         while (index < s.length) {
             if (s[index] == 1) {
-                emitter.onNext(index);
+                emitter.onNext((long)index);
                 primes.add(index);
             }
             index++;

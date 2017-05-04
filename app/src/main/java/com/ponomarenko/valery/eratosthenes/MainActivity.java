@@ -45,7 +45,9 @@ public class MainActivity extends MvpAppCompatActivity implements IMainView {
 
     @Override
     public void showPrimes(String numbers) {
-        textPrimes.setText(numbers);
+        if(numbers.length() != textPrimes.length()) {
+            textPrimes.setText(numbers);
+        }
     }
 
     @Override
@@ -62,7 +64,7 @@ public class MainActivity extends MvpAppCompatActivity implements IMainView {
     @OnClick(R.id.btn_search)
     void onSearchClick() {
         if(textNumber.getText().length() > 0) {
-            presenter.calculatePrimesUntil(Integer.valueOf(textNumber.getText().toString()));
+            presenter.calculatePrimesUntil(Long.valueOf(textNumber.getText().toString()));
         }
     }
 }
